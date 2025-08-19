@@ -67,12 +67,14 @@ export default function App() {
     if (hasAvailableLessons) {
       setSelectedDate(dateString);
       setSelectedTime(null);
+      setSelectedInstructor("all");
     }
   };
 
-  const handleTimeSelect = (timeValue, buttonIndex) => {
+  const handleTimeSelect = (timeValue, buttonIndex, instructorId) => {
     setSelectedTime(timeValue);
     setSelectedButton(buttonIndex);
+    setSelectedInstructor(instructorId);
   };
 
   const handleBookLesson = async () => {

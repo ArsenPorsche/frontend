@@ -77,7 +77,7 @@ export const renderItem = (item, props) => {
                         selectedTime === time.value && selectedButton == groupIndex &&
                           styles.selectedTimeButton,
                       ]}
-                      onPress={() => handleTimeSelect(time.value, groupIndex)}
+                      onPress={() => handleTimeSelect(time.value, groupIndex, instructorGroup.instructorId)}
                     >
                       <Text
                         style={[
