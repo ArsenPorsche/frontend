@@ -13,7 +13,7 @@ export default function App() {
   const [availableTimes, setAvailableTimes] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
-  const [studentName] = useState("Volodymyr");
+  const [studentEmail] = useState("volodymyr@example.com");
   const [openInstructorDropdown, setOpenInstructorDropdown] = useState(false);
   const [markedDates, setMarkedDates] = useState({});
   const [selectedButton, setSelectedButton] = useState(null);
@@ -87,7 +87,7 @@ export default function App() {
 
       if (lesson) {
         try {
-          await lessonService.bookLesson(lesson._id, studentName);
+          await lessonService.bookLesson(lesson._id, studentEmail);
           alert("Lesson booked successfully!");
 
           const updatedLessons = await lessonService.getLessons();

@@ -53,7 +53,7 @@ export const processLessonsData = (
     groupedTimes = Object.entries(groupedByInstructor).map(
       ([instructorId, instructorLessons]) => ({
         instructorId,
-        instructorName: instructorLessons[0].instructor.name,
+        instructorName: `${instructorLessons[0].instructor.firstName} ${instructorLessons[0].instructor.lastName}`.trim(),
         times: instructorLessons
           .map((lesson) => ({
             label: `${moment(lesson.date).format("HH:mm")} - ${moment(

@@ -29,11 +29,11 @@ export const lessonService = {
     }
   },
 
-  async bookLesson(lessonId, studentName) {
+  async bookLesson(lessonId, studentEmail) {
     try {
       const response = await axios.post(`${BASE_URL}/lessons/book`, {
         lessonId,
-        studentName,
+        studentEmail,
       });
       return response.data;
     } catch (error) {
