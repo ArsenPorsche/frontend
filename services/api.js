@@ -2,11 +2,29 @@ import axios from "axios";
 
 const BASE_URL = "http://192.168.0.73:3000";
 
+//Auth service
+export const authService = {
+  async login(email, password) {
+    try {
+      const response = await axios.post(`${BASE_URL}/auth/login`, {
+        email,
+        password,
+      });
+      return response.data;
+    } catch (error) {
+      console.log("Error logining:", error.message);
+      throw error;
+    }
+  },
+};
+
 // Instructor service
 export const instructorService = {
-  async getInstructors() {
+  async getInstructors(token) {
     try {
-      const response = await axios.get(`${BASE_URL}/instructors`);
+      const response = await axios.get(`${BASE_URL}/instructors`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       console.log("Instructors response:", response.data);
       return response.data;
     } catch (error) {
@@ -18,9 +36,11 @@ export const instructorService = {
 
 // Lesson service
 export const lessonService = {
-  async getLessons() {
+  async getLessons(token) {
     try {
-      const response = await axios.get(`${BASE_URL}/lessons`);
+      const response = await axios.get(`${BASE_URL}/lessons`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
       console.log("Lessons response:", response.data);
       return response.data;
     } catch (error) {
@@ -29,12 +49,18 @@ export const lessonService = {
     }
   },
 
-  async bookLesson(lessonId, studentEmail) {
+  async bookLesson(token, lessonId, studentEmail) {
     try {
-      const response = await axios.post(`${BASE_URL}/lessons/book`, {
-        lessonId,
-        studentEmail,
-      });
+      const response = await axios.post(
+        `${BASE_URL}/lessons/book`,
+        {
+          lessonId,
+          studentEmail,
+        },
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       return response.data;
     } catch (error) {
       console.log("Error booking lesson:", error.message);

@@ -1,137 +1,70 @@
 import React, { useState, useEffect } from "react";
-import { View, FlatList } from "react-native";
-import { instructorService, lessonService } from "./services/api";
-import { processLessonsData, createRenderData } from "./utils/dataProcessing";
-import { renderItem } from "./components/RenderItem";
-import { styles } from "./styles/AppStyles";
-import moment from "moment";
+import { NavigationContainer } from "@react-navigation/native";
+import { createStackNavigator } from "@react-navigation/stack";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import Login from "./screens/Login";
+import BookLesson from "./screens/BookLesson";
+
+const Stack = createStackNavigator();
 
 export default function App() {
-  const [instructors, setInstructors] = useState([]);
-  const [selectedInstructor, setSelectedInstructor] = useState("all");
-  const [lessons, setLessons] = useState([]);
-  const [availableTimes, setAvailableTimes] = useState([]);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [selectedTime, setSelectedTime] = useState(null);
-  const [studentEmail] = useState("volodymyr@example.com");
-  const [openInstructorDropdown, setOpenInstructorDropdown] = useState(false);
-  const [markedDates, setMarkedDates] = useState({});
-  const [selectedButton, setSelectedButton] = useState(null);
+  const [user, setUser] = useState(null)
+  const [token, setToken] = useState(null)
 
   useEffect(() => {
-    loadInitialData();
+    const checkToken = async () => {
+      try {
+        const storedToken = await AsyncStorage.getItem("token");
+        const storedUser = await AsyncStorage.getItem("user");
+        if (storedToken && storedUser) {
+          setToken(storedToken);
+          setUser(JSON.parse(storedUser));
+        }
+      } catch (error) {
+        console.log("Error loading from AsyncStorage:", error.message);
+      }
+    };
+    checkToken();
   }, []);
 
-  useEffect(() => {
-    const { marked, groupedTimes } = processLessonsData(
-      lessons,
-      selectedInstructor,
-      selectedDate
-    );
-    setMarkedDates(marked);
-    setAvailableTimes(groupedTimes);
-  }, [lessons, selectedInstructor, selectedDate]);
-
-  const loadInitialData = async () => {
+  
+const handleLogin = async ({ token, user }) => {
     try {
-      // Load instructors
-      const instructorsData = await instructorService.getInstructors();
-      if (Array.isArray(instructorsData)) {
-        const instructorOptions = [
-          { label: "All Instructors", value: "all" },
-          ...instructorsData.map((instructor) => ({
-            label: instructor.name || "Unknown",
-            value: instructor._id || instructor.id || "unknown",
-          })),
-        ];
-        setInstructors(instructorOptions);
-      }
-
-      // Load lessons
-      const lessonsData = await lessonService.getLessons();
-      setLessons(lessonsData);
+      await AsyncStorage.setItem("token", token);
+      await AsyncStorage.setItem("user", JSON.stringify(user));
+      setToken(token);
+      setUser(user);
     } catch (error) {
-      console.log("Error loading initial data:", error.message);
+      console.log("Error saving to AsyncStorage:", error.message);
     }
   };
 
-  const handleDayPress = (day) => {
-    const dateString = day.dateString;
-
-    const hasAvailableLessons = lessons.some(
-      (lesson) =>
-        lesson.status === "available" &&
-        moment(lesson.date).format("YYYY-MM-DD") === dateString
-    );
-
-    if (hasAvailableLessons) {
-      setSelectedDate(dateString);
-      setSelectedTime(null);
-      setSelectedInstructor("all");
+  const handleLogout = async () => {
+    try {
+      await AsyncStorage.removeItem("token");
+      await AsyncStorage.removeItem("user");
+      setToken(null);
+      setUser(null);
+    } catch (error) {
+      console.log("Error logging out:", error.message);
     }
   };
-
-  const handleTimeSelect = (timeValue, buttonIndex, instructorId) => {
-    setSelectedTime(timeValue);
-    setSelectedButton(buttonIndex);
-    setSelectedInstructor(instructorId);
-  };
-
-  const handleBookLesson = async () => {
-    if (selectedInstructor && selectedTime) {
-      const lesson = lessons.find(
-        (l) =>
-          l.instructor._id === selectedInstructor &&
-          moment(l.date).format("YYYY-MM-DD HH:mm") === selectedTime
-      );
-
-      if (lesson) {
-        try {
-          await lessonService.bookLesson(lesson._id, studentEmail);
-          alert("Lesson booked successfully!");
-
-          const updatedLessons = await lessonService.getLessons();
-          setLessons(updatedLessons);
-          setSelectedTime(null);
-        } catch (error) {
-          alert("Failed to book lesson");
-        }
-      }
-    }
-  };
-
-  const renderData = createRenderData(
-    selectedInstructor,
-    selectedDate,
-    selectedTime
-  );
-
-  const itemRenderer = (item) =>
-    renderItem(item, {
-      instructors,
-      openInstructorDropdown,
-      setOpenInstructorDropdown,
-      selectedInstructor,
-      setSelectedInstructor,
-      markedDates,
-      handleDayPress,
-      availableTimes,
-      selectedTime,
-      handleTimeSelect,
-      handleBookLesson,
-      selectedDate,
-      selectedButton,
-    });
 
   return (
-    <View style={styles.container}>
-      <FlatList
-        data={renderData}
-        renderItem={({ item }) => itemRenderer(item)}
-        keyExtractor={(item) => item.id}
-        showsVerticalScrollIndicator={false}
-        contentContainerStyle={styles.flatListContent}
-      />
-    </View>
+    <NavigationContainer>
+      <Stack.Navigator screenOptions={{ headerShown: false }}>
+        {!token ? (
+          <Stack.Screen name="Login">
+            {() => <Login onLogin={handleLogin} />}
+          </Stack.Screen>
+        ) : (
+          <Stack.Screen name="Book">
+            {() => <BookLesson token={token} user={user} setToken={setToken} setUser={setUser} />}
+          </Stack.Screen>
+        )}
+      </Stack.Navigator>
+    </NavigationContainer>
   );
+
+  
 }

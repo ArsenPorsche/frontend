@@ -74,15 +74,16 @@ export const renderItem = (item, props) => {
                       key={index}
                       style={[
                         styles.timeButton,
-                        selectedTime === time.value && selectedButton == groupIndex &&
+                        selectedTime === time.value &&
                           styles.selectedTimeButton,
                       ]}
-                      onPress={() => handleTimeSelect(time.value, groupIndex, instructorGroup.instructorId)}
+                      activeOpacity={1}
+                      onPress={() => handleTimeSelect(time.value, instructorGroup.instructorId)}
                     >
                       <Text
                         style={[
                           styles.timeButtonText,
-                          selectedTime === time.value && selectedButton == groupIndex &&
+                          selectedTime === time.value  &&
                             styles.selectedTimeButtonText,
                         ]}
                       >
