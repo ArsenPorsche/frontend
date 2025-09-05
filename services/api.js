@@ -16,6 +16,18 @@ export const authService = {
       throw error;
     }
   },
+
+  async refreshToken(refreshToken) {
+    try {
+      const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {
+        refreshToken
+      });
+      return response.data;
+    } catch (error) {
+      console.log("Error refreshing token:", error.message);
+      throw error;
+    }
+  },
 };
 
 // Instructor service

@@ -12,7 +12,7 @@ const Login = ({ onLogin }) => {
     try {
       setError(null);
       const response = await authService.login(email, password);
-      onLogin({ token: response.token, user: response.user });
+      onLogin({ token: response.token, user: response.user, refreshToken: response.refreshToken, });
     } catch (error) {
       setError(error.message || "Failed to login");
       Alert.alert("Error", error.message || "Failed to login");
