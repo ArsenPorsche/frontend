@@ -4,7 +4,7 @@ export default {
     slug: "driving-school",
     version: "1.0.0",
     extra: {
-      BASE_URL: "http://192.168.0.45:3000",
+      BASE_URL: "http://192.168.0.38:3000",
     },
   },
 };

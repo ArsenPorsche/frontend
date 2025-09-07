@@ -35,6 +35,18 @@ export const authService = {
     }
   },
 
+  async validateToken(token){
+    try {
+      const response = await axios.post(`${BASE_URL}/auth/validate-token`, {
+        token
+      }) 
+      return response.data
+    } catch (error) {
+      console.log("Token validation error:", error.response?.data || error.message);
+      throw error;
+    }
+  },
+
   async refreshToken(refreshToken) {
     try {
       const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {
@@ -79,16 +91,16 @@ export const lessonService = {
     }
   },
 
-  async bookLesson(token, lessonId, studentEmail) {
+  async bookLesson(token, lessonId, studentId) {
     try {
       const response = await axios.post(
         `${BASE_URL}/lessons/book`,
         {
           lessonId,
-          studentEmail,
+          studentId,
         },
         {
-          headers: { Authorization: `Bearer ${token}` },
+          headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
         }
       );
       return response.data;

@@ -20,7 +20,6 @@ export const renderItem = (item, props) => {
     handleTimeSelect,
     handleBookLesson,
     selectedDate,
-    selectedButton,
   } = props;
 
   switch (item.type) {

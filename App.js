@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import * as SecureStore from "expo-secure-store";
 import Login from "./screens/Login";
 import BookLesson from "./screens/BookLesson";
 import Register from "./screens/Register";
@@ -13,26 +13,37 @@ export default function App() {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [refreshToken, setRefreshToken] = useState(null);
+  const [tokenRole, setTokenRole] = useState(null);
+  const [userId, setUserId] = useState(null);
 
   useEffect(() => {
     const checkAndRefreshToken = async () => {
       try {
-        const storedToken = await AsyncStorage.getItem("token");
-        const storedRefreshToken = await AsyncStorage.getItem("refreshToken");
-        const storedUser = await AsyncStorage.getItem("user");
-        if (storedToken && storedRefreshToken && storedUser) {
-          const response = await authService.refreshToken(storedRefreshToken);
-          const {
-            token: newToken,
-            refreshToken: newRefreshToken,
-            user: newUser,
-          } = response;
-          await AsyncStorage.setItem("token", newToken);
-          await AsyncStorage.setItem("refreshToken", newRefreshToken);
-          await AsyncStorage.setItem("user", JSON.stringify(newUser));
-          setToken(newToken);
-          setRefreshToken(newRefreshToken);
-          setUser(newUser);
+        const storedToken = await SecureStore.getItem("token");
+        const storedRefreshToken = await SecureStore.getItem("refreshToken");
+        if (storedToken && storedRefreshToken) {
+          try {
+            const response = await authService.refreshToken(storedRefreshToken);
+            const { token: newToken, refreshToken: newRefreshToken } = response;
+            await SecureStore.setItem("token", newToken);
+            await SecureStore.setItem("refreshToken", newRefreshToken);
+            setToken(newToken);
+            setRefreshToken(newRefreshToken);
+          } catch (error) {
+            await handleLogout();
+          }
+        }
+
+        if (storedToken) {
+          try {
+            const validation = await authService.validateToken(storedToken);
+            setTokenRole(validation.role);
+            setUserId(validation.id);
+          } catch (error) {
+            console.log("Token validation failed:", error);
+            setTokenRole(null);
+            setUserId(null);
+          }
         }
       } catch (error) {
         console.log("Token check failed:", error.message);
@@ -44,52 +55,43 @@ export default function App() {
 
   const handleLogin = async ({ token, user, refreshToken }) => {
     try {
-      await AsyncStorage.setItem("token", token);
-      await AsyncStorage.setItem("refreshToken", refreshToken);
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+      await SecureStore.setItem("token", token);
+      await SecureStore.setItem("refreshToken", refreshToken);
+      await SecureStore.setItem("user", JSON.stringify(user));
       setToken(token);
       setRefreshToken(refreshToken);
       setUser(user);
+      const validation = await authService.validateToken(token);
+      setTokenRole(validation.role);
+      setUserId(validation.id);
     } catch (error) {
-      console.log("Error saving to AsyncStorage:", error.message);
+      console.log("Error saving to SecureStore:", error.message);
     }
   };
 
   const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("refreshToken");
-      await AsyncStorage.removeItem("user");
-      setToken(null);
-      setRefreshToken(null);
-      setUser(null);
-    } catch (error) {
-      console.log("Error logging out:", error.message);
-    }
+    await SecureStore.removeItem("token");
+    await SecureStore.removeItem("refreshToken");
+    await SecureStore.removeItem("user");
+    setToken(null);
+    setRefreshToken(null);
+    setUser(null);
+    setTokenRole(null);
+    setUserId(null);
   };
 
   return (
     <NavigationContainer>
       <Stack.Navigator screenOptions={{ headerShown: false }}>
-        {!token ? (
+        {tokenRole === "admin" ? (
+          <Stack.Screen name="Register">{() => <Register />}</Stack.Screen>
+        ) : tokenRole === "student" ? (
+          <Stack.Screen name="Book">
+            {() => <BookLesson token={token} userId={userId} />}
+          </Stack.Screen>
+        ) : (
           <Stack.Screen name="Login">
             {() => <Login onLogin={handleLogin} />}
-          </Stack.Screen>
-        ) : user.role === "admin" ? (
-          <Stack.Screen name="Register">{() => <Register />}</Stack.Screen>
-        ) : (
-          <Stack.Screen name="Book">
-            {() => (
-              <BookLesson
-                token={token}
-                user={user}
-                setToken={setToken}
-                setUser={setUser}
-                refreshToken={refreshToken}
-                setRefreshToken={setRefreshToken}
-                onLogout={handleLogout}
-              />
-            )}
           </Stack.Screen>
         )}
       </Stack.Navigator>

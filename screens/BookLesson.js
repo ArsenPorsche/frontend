@@ -6,7 +6,7 @@ import { renderItem } from "../components/RenderItem";
 import { styles } from "../styles/AppStyles";
 import moment from "moment";
 
-const BookLesson = ({ token, user, setToken, setUser }) => {
+const BookLesson = ({ token, userId }) => {
   const [instructors, setInstructors] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [lessons, setLessons] = useState([]);
@@ -15,7 +15,6 @@ const BookLesson = ({ token, user, setToken, setUser }) => {
   const [selectedTime, setSelectedTime] = useState(null);
   const [openInstructorDropdown, setOpenInstructorDropdown] = useState(false);
   const [markedDates, setMarkedDates] = useState({});
-  const [selectedButton, setSelectedButton] = useState(null);
 
   useEffect(() => {
     loadInitialData();
@@ -73,11 +72,12 @@ const BookLesson = ({ token, user, setToken, setUser }) => {
       );
       if (lesson) {
         try {
-          await lessonService.bookLesson(token, lesson._id, user.email);
+          await lessonService.bookLesson(token, lesson._id, userId);
           Alert.alert("Success", "Lesson booked successfully!");
           setLessons((prev) => prev.filter((l) => l._id !== lesson._id));
           setSelectedTime(null);
-          setSelectedButton(null);
+          setSelectedDate(null);
+          setSelectedInstructor("all");
         } catch (error) {
           Alert.alert("Error", error.message || "Failed to book lesson");
         }
@@ -90,9 +90,7 @@ const BookLesson = ({ token, user, setToken, setUser }) => {
   const handleLogout = async () => {
     try {
       await AsyncStorage.removeItem("token");
-      await AsyncStorage.removeItem("user");
       setToken(null);
-      setUser(null);
     } catch (error) {
       console.log("Error logging out:", error.message);
     }
@@ -114,7 +112,6 @@ const BookLesson = ({ token, user, setToken, setUser }) => {
       handleTimeSelect,
       handleBookLesson,
       selectedDate,
-      selectedButton,
     });
 
   return (
