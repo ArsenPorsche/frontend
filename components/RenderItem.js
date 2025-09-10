@@ -112,30 +112,44 @@ export const renderItem = (item, props) => {
     case "instructorsTimes":
       return (
         <View style={styles.timesContainer}>
-          <Text style={styles.label}>Booked Times:</Text>
+          <Text style={styles.label}>Times:</Text>
           {availableTimes.length > 0 ? (
-            availableTimes.map((time, index) => (
-              <TouchableOpacity
-                key={index}
-                style={[
-                  styles.timeButton,
-                  selectedTime === time.value && styles.selectedTimeButton,
-                ]}
-                activeOpacity={1}
-                onPress={() =>
-                  handleTimeSelect(time.value)
-                }
-              >
-                <Text
-                  style={[
-                    styles.timeButtonText,
-                    selectedTime === time.value &&
-                      styles.selectedTimeButtonText,
-                  ]}
-                >
-                  {time.label}
+            availableTimes.map((statusGroup, groupIndex) => (
+              <View key={groupIndex} style={styles.instructorGroup}>
+                <Text style={styles.instructorGroupTitle}>
+                  {statusGroup.statusName}
                 </Text>
-              </TouchableOpacity>
+                <View style={styles.timeGrid}>
+                  {statusGroup.times.map((time, index) => (
+                    <TouchableOpacity
+                      key={index}
+                      style={[
+                        styles.timeButton,
+                        selectedTime === time.value &&
+                          styles.selectedTimeButton,
+                      ]}
+                      activeOpacity={1}
+                      onPress={() =>
+                        handleTimeSelect(
+                          time.value,
+                          time.lessonId,
+                          //statusGroup.statusName
+                        )
+                      }
+                    >
+                      <Text
+                        style={[
+                          styles.timeButtonText,
+                          selectedTime === time.value &&
+                            styles.selectedTimeButtonText,
+                        ]}
+                      >
+                        {time.label}
+                      </Text>
+                    </TouchableOpacity>
+                  ))}
+                </View>
+              </View>
             ))
           ) : (
             <Text style={styles.noTimesText}>

@@ -82,15 +82,13 @@ export const processScheduleData = (lessons, selectedDate) => {
   // Update marked dates
   const marked = {};
 
-  const availableDates = lessons
-    .filter((lesson) => lesson.status === "booked")
-    .map((lesson) => moment(lesson.date).format("YYYY-MM-DD"));
+  const availableDates = lessons.map((lesson) =>
+    moment(lesson.date).format("YYYY-MM-DD")
+  );
 
   availableDates.forEach((date) => {
     const lessonsForDate = lessons.filter(
-      (lesson) =>
-        lesson.status === "booked" &&
-        moment(lesson.date).format("YYYY-MM-DD") === date
+      (lesson) => moment(lesson.date).format("YYYY-MM-DD") === date
     );
 
     if (lessonsForDate.length > 0) {
@@ -99,6 +97,13 @@ export const processScheduleData = (lessons, selectedDate) => {
         dotColor: "#50C878",
         selectedColor: "#50C878",
       };
+      if (lessonsForDate.some((lesson) => lesson.status === "booked")) {
+        marked[date] = {
+          ...marked[date],
+          dotColor: "#db4242ff",
+          selectedColor: "#db4242ff",
+        };
+      }
     }
   });
 
@@ -110,25 +115,33 @@ export const processScheduleData = (lessons, selectedDate) => {
     };
   }
 
-  let times = [];
+  let groupedTimes = [];
   if (selectedDate) {
-    const availableLessons = lessons.filter(
-      (lesson) =>
-        lesson.status === "booked" &&
-        moment(lesson.date).format("YYYY-MM-DD") === selectedDate
+    const lessonsForSelectedDate = lessons.filter(
+      (lesson) => moment(lesson.date).format("YYYY-MM-DD") === selectedDate
     );
 
-    times = availableLessons.map((lesson) => ({
-      label: `${moment(lesson.date).format("HH:mm")} - ${moment(lesson.date)
-        .add(2, "hours")
-        .format("HH:mm")}`,
-      value: moment(lesson.date).format("YYYY-MM-DD HH:mm"),
-      sortValue: moment(lesson.date).valueOf(),
-      lessonId: lesson._id,
-    }));
-  }
+    const groupedByStatus = _.groupBy(lessonsForSelectedDate, "status");
 
-  return { marked, times };
+    groupedTimes = Object.entries(groupedByStatus).map(
+      ([statusName, statusLessons]) => ({
+        statusName: toUpperCase(statusName),
+        times: statusLessons
+          .map((lesson) => ({
+            label: `${moment(lesson.date).format("HH:mm")} - ${moment(
+              lesson.date
+            )
+              .add(2, "hours")
+              .format("HH:mm")}`,
+            value: moment(lesson.date).format("YYYY-MM-DD HH:mm"),
+            sortValue: moment(lesson.date).valueOf(),
+            lessonId: lesson._id,
+          }))
+          .sort((a, b) => a.sortValue - b.sortValue),
+      })
+    );
+  }
+  return { marked, groupedTimes };
 };
 
 export const createRenderData = (
@@ -148,12 +161,6 @@ export const createRenderData = (
       if (selectedDate)
         data.push({ type: "instructorsTimes", id: "instructorsTimes" });
 
-      //   if (selectedTime) {
-      //     data.push({ type: "button", id: "button" });
-      //   }
-
-      //   data.push({ type: "info", id: "info" });
-      // }
       break;
     case "student":
       data = [
@@ -177,3 +184,16 @@ export const createRenderData = (
 
   return data;
 };
+
+function toUpperCase(word){
+  let firstLetter = word[0].toUpperCase();
+  return firstLetter + word.slice(1);
+}
+
+export function formatDate(dateIso){
+  const d = new Date(dateIso);
+
+    const date = d.toLocaleDateString("pl-PL"); 
+    const time = d.toLocaleTimeString("pl-PL", { hour: "2-digit", minute: "2-digit" });
+    return `${date} ${time}`
+}

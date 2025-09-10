@@ -7,6 +7,8 @@ import BookLesson from "./screens/BookLesson";
 import Register from "./screens/Register";
 import Schedule from "./screens/Schedule";
 import { authService } from "./services/api";
+import { View, Text, ActivityIndicator } from "react-native";
+
 
 const Stack = createStackNavigator();
 
@@ -16,70 +18,126 @@ export default function App() {
   const [refreshToken, setRefreshToken] = useState(null);
   const [tokenRole, setTokenRole] = useState(null);
   const [userId, setUserId] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const checkAndRefreshToken = async () => {
       try {
-        const storedToken = SecureStore.getItem("token");
-        const storedRefreshToken = SecureStore.getItem("refreshToken");
+        setIsLoading(true);
+        
+        // ВИПРАВЛЕННЯ 1: Використовуємо await для getItem
+        const storedToken = await SecureStore.getItemAsync("token");
+        const storedRefreshToken = await SecureStore.getItemAsync("refreshToken");
+        const storedUser = await SecureStore.getItemAsync("user");
+
+        console.log("Stored token:", storedToken ? "exists" : "not found");
+        console.log("Stored refresh token:", storedRefreshToken ? "exists" : "not found");
+
         if (storedToken && storedRefreshToken) {
           try {
-            const response = await authService.refreshToken(storedRefreshToken);
-            const { token: newToken, refreshToken: newRefreshToken } = response;
-            SecureStore.setItem("token", newToken);
-            SecureStore.setItem("refreshToken", newRefreshToken);
-            setToken(newToken);
-            setRefreshToken(newRefreshToken);
-          } catch (error) {
-            await handleLogout();
-          }
-        }
+            setToken(storedToken);
+            setRefreshToken(storedRefreshToken);
+            
+            if (storedUser) {
+              setUser(JSON.parse(storedUser));
+            }
 
-        if (storedToken) {
-          try {
             const validation = await authService.validateToken(storedToken);
             setTokenRole(validation.role);
             setUserId(validation.id);
-          } catch (error) {
-            console.log("Token validation failed:", error);
-            setTokenRole(null);
-            setUserId(null);
+            
+            console.log("Token validated successfully. Role:", validation.role);
+          } catch (validationError) {
+            console.log("Token validation failed, trying to refresh:", validationError.message);
+            
+            try {
+              const response = await authService.refreshToken(storedRefreshToken);
+              const { token: newToken, refreshToken: newRefreshToken } = response;
+              
+              await SecureStore.setItemAsync("token", newToken);
+              await SecureStore.setItemAsync("refreshToken", newRefreshToken);
+              
+              setToken(newToken);
+              setRefreshToken(newRefreshToken);
+              
+              const newValidation = await authService.validateToken(newToken);
+              setTokenRole(newValidation.role);
+              setUserId(newValidation.id);
+              
+              console.log("Token refreshed and validated. Role:", newValidation.role);
+            } catch (refreshError) {
+              console.log("Token refresh failed:", refreshError.message);
+              await handleLogout();
+            }
           }
+        } else {
+          console.log("No stored tokens found");
+          await handleLogout();
         }
       } catch (error) {
         console.log("Token check failed:", error.message);
         await handleLogout();
+      } finally {
+        setIsLoading(false);
       }
     };
+
     checkAndRefreshToken();
   }, []);
 
   const handleLogin = async ({ token, user, refreshToken }) => {
     try {
-      await SecureStore.setItem("token", token);
-      await SecureStore.setItem("refreshToken", refreshToken);
-      await SecureStore.setItem("user", JSON.stringify(user));
+      await SecureStore.setItemAsync("token", token);
+      await SecureStore.setItemAsync("refreshToken", refreshToken);
+      await SecureStore.setItemAsync("user", JSON.stringify(user));
+
       setToken(token);
       setRefreshToken(refreshToken);
       setUser(user);
+
       const validation = await authService.validateToken(token);
       setTokenRole(validation.role);
       setUserId(validation.id);
+
+      console.log("Login successful. Role:", validation.role);
     } catch (error) {
       console.log("Error saving to SecureStore:", error.message);
     }
   };
 
   const handleLogout = async () => {
-    await SecureStore.removeItem("token");
-    await SecureStore.removeItem("refreshToken");
-    await SecureStore.removeItem("user");
+    try {
+      await SecureStore.deleteItemAsync("token");
+      await SecureStore.deleteItemAsync("refreshToken");
+      await SecureStore.deleteItemAsync("user");
+    } catch (error) {
+      console.log("Error clearing SecureStore:", error.message);
+    }
+    
     setToken(null);
     setRefreshToken(null);
     setUser(null);
     setTokenRole(null);
     setUserId(null);
   };
+
+
+   if (isLoading) {
+    return (
+      <NavigationContainer>
+        <Stack.Navigator screenOptions={{ headerShown: false }}>
+          <Stack.Screen name="Loading">
+            {() => (
+              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+                <ActivityIndicator size="large" color="#007AFF" />
+                <Text style={{ marginTop: 20, fontSize: 16 }}>Loading...</Text>
+              </View>
+            )}
+          </Stack.Screen>
+        </Stack.Navigator>
+      </NavigationContainer>
+    );
+  }
 
   return (
     <NavigationContainer>
@@ -102,4 +160,5 @@ export default function App() {
       </Stack.Navigator>
     </NavigationContainer>
   );
+
 }

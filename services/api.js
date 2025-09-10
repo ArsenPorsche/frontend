@@ -132,4 +132,43 @@ export const lessonService = {
       throw error;
     }
   },
+
+  async getLessonOffer(token, instructorId) {
+    try {
+      const response = await axios.get(
+        `${BASE_URL}/lessons/offer`,
+        {
+          params: { instructorId },
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
+      console.log("Lessons response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching lessons:", error.message, error.response?.status, error.response?.data, error.toJSON ? error.toJSON() : error);
+      throw error;
+    }
+  },
+
+  async changeLesson(token, oldLessonId, newDate) {
+    try {
+      const response = await axios.post(
+        `${BASE_URL}/lessons/change`,
+        {
+          oldLessonId,
+          newDate,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+        }
+      );
+      return response.data;
+    } catch (error) {
+      console.log("Error changing lesson:", error.message);
+      throw error;
+    }
+  },
 };
