@@ -1,16 +1,62 @@
 import axios from "axios";
 import Constants from "expo-constants";
+import * as SecureStore from "expo-secure-store";
 
 const { BASE_URL } = Constants.expoConfig.extra;
+
+const api = axios.create({
+  baseURL: BASE_URL,
+});
+
+api.interceptors.request.use(async (config) => {
+  if (config.skipAuth) return config;
+  const token = await SecureStore.getItemAsync("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (
+      error.response &&
+      error.response.status === 401 &&
+      !originalRequest._retry &&
+      !originalRequest.skipAuth 
+    ) {
+      originalRequest._retry = true;
+      const refreshToken = await SecureStore.getItemAsync("refreshToken");
+      if (refreshToken) {
+        try {
+          const res = await axios.post(`${BASE_URL}/auth/refresh-token`, {
+            refreshToken,
+          });
+          const newToken = res.data.token;
+          const newRefreshToken = res.data.refreshToken;
+          await SecureStore.setItemAsync("token", newToken);
+          await SecureStore.setItemAsync("refreshToken", newRefreshToken);
+          originalRequest.headers.Authorization = `Bearer ${newToken}`;
+          return api(originalRequest);
+        } catch (refreshError) {
+          // handleLogout();
+        }
+      }
+    }
+    return Promise.reject(error);
+  }
+);
 
 //Auth service
 export const authService = {
   async login(email, password) {
     try {
-      const response = await axios.post(`${BASE_URL}/auth/login`, {
+      const response = await api.post("/auth/login", {
         email,
         password,
-      });
+      }, { skipAuth: true });
       return response.data;
     } catch (error) {
       console.log("Error logining:", error.message);
@@ -20,7 +66,7 @@ export const authService = {
 
   async register(firstName, lastName, role, phoneNumber, email, password) {
     try {
-      const response = await axios.post(`${BASE_URL}/auth/register`, {
+      const response = await api.post("/auth/register", {
         firstName,
         lastName,
         role,
@@ -37,9 +83,9 @@ export const authService = {
 
   async validateToken(token) {
     try {
-      const response = await axios.post(`${BASE_URL}/auth/validate-token`, {
+      const response = await api.post("/auth/validate-token", {
         token,
-      });
+      }, { skipAuth: true });
       return response.data;
     } catch (error) {
       console.log(
@@ -52,9 +98,9 @@ export const authService = {
 
   async refreshToken(refreshToken) {
     try {
-      const response = await axios.post(`${BASE_URL}/auth/refresh-token`, {
+      const response = await api.post("/auth/refresh-token", {
         refreshToken,
-      });
+      }, { skipAuth: true });
       return response.data;
     } catch (error) {
       console.log("Error refreshing token:", error.message);
@@ -67,9 +113,7 @@ export const authService = {
 export const instructorService = {
   async getInstructors(token) {
     try {
-      const response = await axios.get(`${BASE_URL}/instructors`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/instructors");
       console.log("Instructors response:", response.data);
       return response.data;
     } catch (error) {
@@ -83,9 +127,7 @@ export const instructorService = {
 export const lessonService = {
   async getLessons(token) {
     try {
-      const response = await axios.get(`${BASE_URL}/lessons`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await api.get("/lessons");
       console.log("Lessons response:", response.data);
       return response.data;
     } catch (error) {
@@ -96,18 +138,12 @@ export const lessonService = {
 
   async bookLesson(token, lessonId, studentId) {
     try {
-      const response = await axios.post(
-        `${BASE_URL}/lessons/book`,
+      const response = await api.post(
+        "/lessons/book",
         {
           lessonId,
           studentId,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
       );
       return response.data;
     } catch (error) {
@@ -118,11 +154,10 @@ export const lessonService = {
 
   async getInstructorsLessons(token, instructorId) {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/lessons/instructors`,
+      const response = await api.get(
+        "/lessons/instructors",
         {
           params: { instructorId },
-          headers: { Authorization: `Bearer ${token}` },
         }
       );
       console.log("Lessons response:", response.data);
@@ -135,11 +170,10 @@ export const lessonService = {
 
   async getLessonOffer(token, instructorId) {
     try {
-      const response = await axios.get(
-        `${BASE_URL}/lessons/offer`,
+      const response = await api.get(
+        "/lessons/offer",
         {
           params: { instructorId },
-          headers: { Authorization: `Bearer ${token}` },
         }
       );
       console.log("Lessons response:", response.data);
@@ -152,18 +186,12 @@ export const lessonService = {
 
   async changeLesson(token, oldLessonId, newDate) {
     try {
-      const response = await axios.post(
-        `${BASE_URL}/lessons/change`,
+      const response = await api.post(
+        "/lessons/change",
         {
           oldLessonId,
           newDate,
         },
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-            "Content-Type": "application/json",
-          },
-        }
       );
       return response.data;
     } catch (error) {

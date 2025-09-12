@@ -70,9 +70,16 @@ const Schedule = ({ token, userId, userRole }) => {
     setIsTimeMenuVisible(true);
   };
 
-  const handleMenuAction = async () => {
-    const lessonsDate = await lessonService.getLessonOffer(token, userId);
-    setDateOffer(lessonsDate);
+  const handleGenerateAction = async () => {
+    try {
+      const lessonsDate = await lessonService.getLessonOffer(token, userId);
+      setDateOffer(lessonsDate);
+      if (lessonsDate === null) {
+        Alert.alert("Error", "You have not free hours.");
+      }
+    } catch (error) {
+      Alert.alert("Error", "Failed to generate lesson offer.");
+    }
   };
 
   const handleAcceptAction = async () => {
@@ -81,20 +88,22 @@ const Schedule = ({ token, userId, userRole }) => {
       selectedLesson,
       dateOffer
     );
+    const { newLesson, oldLesson } = lessonData;
     setLessons((prevLessons) => {
       const updatedLessons = prevLessons.filter(
         (l) => l._id !== selectedLesson
       );
-      return [...updatedLessons, lessonData].sort(
+      return [...updatedLessons, newLesson].sort(
         (a, b) => moment(a.date) - moment(b.date)
       );
     });
     Alert.alert("Lesson has canceled", selectedTimeForMenu);
     setSelectedTime(null);
     setIsTimeMenuVisible(false);
+    setDateOffer(null);
   };
 
-  const handleCancelButton = () => {
+  const handleCloseAction = () => {
     setSelectedTime(null);
     setIsTimeMenuVisible(false);
     setDateOffer(null);
@@ -132,17 +141,17 @@ const Schedule = ({ token, userId, userRole }) => {
           {!dateOffer ? (
             <View style={styles.modalContent}>
               <Text style={styles.modalText}>
-                Selected Time: {selectedTimeForMenu}
+                Selected Time: {formatDate(selectedTimeForMenu)}
               </Text>
               <TouchableOpacity
                 style={styles.modalButton}
-                onPress={handleMenuAction}
+                onPress={handleGenerateAction}
               >
                 <Text style={styles.modalButtonText}>Cancel lesson</Text>
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalButton}
-                onPress={handleCancelButton}
+                onPress={handleCloseAction}
               >
                 <Text style={styles.modalButtonText}>Close</Text>
               </TouchableOpacity>
@@ -150,7 +159,10 @@ const Schedule = ({ token, userId, userRole }) => {
           ) : (
             <View style={styles.modalContent}>
               <Text style={styles.modalText}>
-                Time Proposal : {formatDate(dateOffer)}
+                Old Time: {formatDate(selectedTimeForMenu)}
+              </Text>
+              <Text style={styles.modalText}>
+                Time Proposal: {formatDate(dateOffer)}
               </Text>
               <TouchableOpacity
                 style={styles.modalButton}
@@ -162,7 +174,7 @@ const Schedule = ({ token, userId, userRole }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalButton}
-                onPress={handleMenuAction}
+                onPress={handleGenerateAction}
               >
                 <Text style={styles.modalButtonText}>
                   Generate another Time
@@ -170,7 +182,7 @@ const Schedule = ({ token, userId, userRole }) => {
               </TouchableOpacity>
               <TouchableOpacity
                 style={styles.modalButton}
-                onPress={handleCancelButton}
+                onPress={handleCloseAction}
               >
                 <Text style={styles.modalButtonText}>Close</Text>
               </TouchableOpacity>

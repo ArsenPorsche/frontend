@@ -114,43 +114,45 @@ export const renderItem = (item, props) => {
         <View style={styles.timesContainer}>
           <Text style={styles.label}>Times:</Text>
           {availableTimes.length > 0 ? (
-            availableTimes.map((statusGroup, groupIndex) => (
-              <View key={groupIndex} style={styles.instructorGroup}>
-                <Text style={styles.instructorGroupTitle}>
-                  {statusGroup.statusName}
-                </Text>
-                <View style={styles.timeGrid}>
-                  {statusGroup.times.map((time, index) => (
-                    <TouchableOpacity
-                      key={index}
-                      style={[
-                        styles.timeButton,
-                        selectedTime === time.value &&
-                          styles.selectedTimeButton,
-                      ]}
-                      activeOpacity={1}
-                      onPress={() =>
-                        handleTimeSelect(
-                          time.value,
-                          time.lessonId,
-                          //statusGroup.statusName
-                        )
-                      }
-                    >
-                      <Text
+            availableTimes
+              .filter((statusGroup) => statusGroup.statusName !== "Canceled")
+              .map((statusGroup, groupIndex) => (
+                <View key={groupIndex} style={styles.instructorGroup}>
+                  <Text style={styles.instructorGroupTitle}>
+                    {statusGroup.statusName}
+                  </Text>
+                  <View style={styles.timeGrid}>
+                    {statusGroup.times.map((time, index) => (
+                      <TouchableOpacity
+                        key={index}
                         style={[
-                          styles.timeButtonText,
+                          styles.timeButton,
                           selectedTime === time.value &&
-                            styles.selectedTimeButtonText,
+                            styles.selectedTimeButton,
                         ]}
+                        activeOpacity={1}
+                        onPress={() =>
+                          handleTimeSelect(
+                            time.value,
+                            time.lessonId
+                            //statusGroup.statusName
+                          )
+                        }
                       >
-                        {time.label}
-                      </Text>
-                    </TouchableOpacity>
-                  ))}
+                        <Text
+                          style={[
+                            styles.timeButtonText,
+                            selectedTime === time.value &&
+                              styles.selectedTimeButtonText,
+                          ]}
+                        >
+                          {time.label}
+                        </Text>
+                      </TouchableOpacity>
+                    ))}
+                  </View>
                 </View>
-              </View>
-            ))
+              ))
           ) : (
             <Text style={styles.noTimesText}>
               No available times on this date

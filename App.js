@@ -25,7 +25,6 @@ export default function App() {
       try {
         setIsLoading(true);
         
-        // ВИПРАВЛЕННЯ 1: Використовуємо await для getItem
         const storedToken = await SecureStore.getItemAsync("token");
         const storedRefreshToken = await SecureStore.getItemAsync("refreshToken");
         const storedUser = await SecureStore.getItemAsync("user");
