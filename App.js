@@ -3,12 +3,13 @@ import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as SecureStore from "expo-secure-store";
 import Login from "./screens/Login";
-import BookLesson from "./screens/BookLesson";
 import Register from "./screens/Register";
 import Schedule from "./screens/Schedule";
+import Home from "./screens/Home";
+import BookLesson from "./screens/BookLesson";
+import Profile from "./screens/Profile";
 import { authService } from "./services/api";
 import { View, Text, ActivityIndicator } from "react-native";
-
 
 const Stack = createStackNavigator();
 
@@ -24,19 +25,24 @@ export default function App() {
     const checkAndRefreshToken = async () => {
       try {
         setIsLoading(true);
-        
+
         const storedToken = await SecureStore.getItemAsync("token");
-        const storedRefreshToken = await SecureStore.getItemAsync("refreshToken");
+        const storedRefreshToken = await SecureStore.getItemAsync(
+          "refreshToken"
+        );
         const storedUser = await SecureStore.getItemAsync("user");
 
         console.log("Stored token:", storedToken ? "exists" : "not found");
-        console.log("Stored refresh token:", storedRefreshToken ? "exists" : "not found");
+        console.log(
+          "Stored refresh token:",
+          storedRefreshToken ? "exists" : "not found"
+        );
 
         if (storedToken && storedRefreshToken) {
           try {
             setToken(storedToken);
             setRefreshToken(storedRefreshToken);
-            
+
             if (storedUser) {
               setUser(JSON.parse(storedUser));
             }
@@ -44,26 +50,35 @@ export default function App() {
             const validation = await authService.validateToken(storedToken);
             setTokenRole(validation.role);
             setUserId(validation.id);
-            
+
             console.log("Token validated successfully. Role:", validation.role);
           } catch (validationError) {
-            console.log("Token validation failed, trying to refresh:", validationError.message);
-            
+            console.log(
+              "Token validation failed, trying to refresh:",
+              validationError.message
+            );
+
             try {
-              const response = await authService.refreshToken(storedRefreshToken);
-              const { token: newToken, refreshToken: newRefreshToken } = response;
-              
+              const response = await authService.refreshToken(
+                storedRefreshToken
+              );
+              const { token: newToken, refreshToken: newRefreshToken } =
+                response;
+
               await SecureStore.setItemAsync("token", newToken);
               await SecureStore.setItemAsync("refreshToken", newRefreshToken);
-              
+
               setToken(newToken);
               setRefreshToken(newRefreshToken);
-              
+
               const newValidation = await authService.validateToken(newToken);
               setTokenRole(newValidation.role);
               setUserId(newValidation.id);
-              
-              console.log("Token refreshed and validated. Role:", newValidation.role);
+
+              console.log(
+                "Token refreshed and validated. Role:",
+                newValidation.role
+              );
             } catch (refreshError) {
               console.log("Token refresh failed:", refreshError.message);
               await handleLogout();
@@ -112,7 +127,7 @@ export default function App() {
     } catch (error) {
       console.log("Error clearing SecureStore:", error.message);
     }
-    
+
     setToken(null);
     setRefreshToken(null);
     setUser(null);
@@ -120,14 +135,19 @@ export default function App() {
     setUserId(null);
   };
 
-
-   if (isLoading) {
+  if (isLoading) {
     return (
       <NavigationContainer>
         <Stack.Navigator screenOptions={{ headerShown: false }}>
           <Stack.Screen name="Loading">
             {() => (
-              <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center' }}>
+              <View
+                style={{
+                  flex: 1,
+                  justifyContent: "center",
+                  alignItems: "center",
+                }}
+              >
                 <ActivityIndicator size="large" color="#007AFF" />
                 <Text style={{ marginTop: 20, fontSize: 16 }}>Loading...</Text>
               </View>
@@ -144,13 +164,43 @@ export default function App() {
         {tokenRole === "admin" ? (
           <Stack.Screen name="Register">{() => <Register />}</Stack.Screen>
         ) : tokenRole === "student" ? (
-          <Stack.Screen name="Book">
-            {() => <BookLesson token={token} userId={userId} userRole={tokenRole}/>}
-          </Stack.Screen>
+          <>
+            <Stack.Screen name="Home">
+              {(props) => <Home {...props} tokenRole={tokenRole} />}
+            </Stack.Screen>
+            <Stack.Screen name="BookLesson">
+              {(props) => (
+                <BookLesson
+                  {...props}
+                  token={token}
+                  userId={userId}
+                  userRole={tokenRole}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Profile">
+              {(props) => <Profile {...props} tokenRole={tokenRole} handleLogout={handleLogout} />}
+            </Stack.Screen>
+          </>
         ) : tokenRole === "instructor" ? (
-          <Stack.Screen name="Schedule">
-            {() => <Schedule token={token} userId={userId} userRole={tokenRole}/>}
-          </Stack.Screen>
+          <>
+            <Stack.Screen name="Home">
+              {(props) => <Home {...props} tokenRole={tokenRole} />}
+            </Stack.Screen>
+            <Stack.Screen name="Schedule">
+              {(props) => (
+                <Schedule
+                  {...props}
+                  token={token}
+                  userId={userId}
+                  userRole={tokenRole}
+                />
+              )}
+            </Stack.Screen>
+            <Stack.Screen name="Profile">
+              {(props) => <Profile {...props} tokenRole={tokenRole} handleLogout={handleLogout} />}
+            </Stack.Screen>
+          </>
         ) : (
           <Stack.Screen name="Login">
             {() => <Login onLogin={handleLogin} />}
@@ -159,5 +209,4 @@ export default function App() {
       </Stack.Navigator>
     </NavigationContainer>
   );
-
 }

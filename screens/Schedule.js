@@ -14,10 +14,11 @@ import {
   formatDate,
 } from "../utils/dataProcessing";
 import { renderItem } from "../components/RenderItem";
+import NavBar from "../components/NavBar";
 import { styles } from "../styles/AppStyles";
 import moment from "moment";
 
-const Schedule = ({ token, userId, userRole }) => {
+const Schedule = ({ navigation, token, userId, userRole }) => {
   const [lessons, setLessons] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -130,6 +131,7 @@ const Schedule = ({ token, userId, userRole }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
       />
+      <NavBar role={userRole} navigation={navigation} />
 
       <Modal
         transparent={true}

@@ -4,9 +4,10 @@ import { instructorService, lessonService } from "../services/api";
 import { processBookingData, createRenderData } from "../utils/dataProcessing";
 import { renderItem } from "../components/RenderItem";
 import { styles } from "../styles/AppStyles";
+import NavBar from "../components/NavBar";
 import moment from "moment";
 
-const BookLesson = ({ token, userId, userRole }) => {
+const BookLesson = ({ navigation, token, userId, userRole }) => {
   const [instructors, setInstructors] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [lessons, setLessons] = useState([]);
@@ -122,6 +123,7 @@ const BookLesson = ({ token, userId, userRole }) => {
         showsVerticalScrollIndicator={false}
         contentContainerStyle={styles.flatListContent}
       />
+      <NavBar role={userRole} navigation={navigation}/>
     </View>
   );
 };
