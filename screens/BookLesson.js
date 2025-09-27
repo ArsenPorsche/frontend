@@ -7,7 +7,7 @@ import { styles } from "../styles/AppStyles";
 import NavBar from "../components/NavBar";
 import moment from "moment";
 
-const BookLesson = ({ navigation, token, userId, userRole }) => {
+const BookLesson = ({ navigation, token, userRole }) => {
   const [instructors, setInstructors] = useState([]);
   const [selectedInstructor, setSelectedInstructor] = useState("all");
   const [lessons, setLessons] = useState([]);
@@ -72,7 +72,7 @@ const BookLesson = ({ navigation, token, userId, userRole }) => {
       );
       if (lesson) {
         try {
-          await lessonService.bookLesson(lesson._id, userId);
+          await lessonService.bookLesson(lesson._id);
           Alert.alert("Success", "Lesson booked successfully!");
           setLessons((prev) => prev.filter((l) => l._id !== lesson._id));
           setSelectedTime(null);
@@ -87,14 +87,6 @@ const BookLesson = ({ navigation, token, userId, userRole }) => {
     }
   };
 
-  const handleLogout = async () => {
-    try {
-      await AsyncStorage.removeItem("token");
-      setToken(null);
-    } catch (error) {
-      console.log("Error logging out:", error.message);
-    }
-  };
 
   const renderData = createRenderData(selectedInstructor, selectedDate, selectedTime, userRole);
 

@@ -3,20 +3,20 @@ import { useFocusEffect } from "@react-navigation/native";
 import { View, Text, Image } from "react-native";
 import NavBar from "../components/NavBar";
 import { homeStyles } from "../styles/HomeStyles";
-import { lessonService } from "../services/api";
+import { productService } from "../services/api";
 
-const Home = ({ navigation, token, userId, tokenRole }) => {
+const Home = ({ navigation, userId, tokenRole }) => {
   const [purchasedLessonsQty, setPurchasedLessonsQty] = useState();
   const [purchasedExamsQty, setPurchasedExamsQty] = useState();
 
   const loadInitialData = async () => {
     try {
-      const lessons = await lessonService.getPurchasedLessons(userId);
-      setPurchasedLessonsQty(lessons.purchasedLessons);
-      setPurchasedExamsQty(lessons.purchasedExams);
-      console.log("Purchased lessons:", lessons);
+      const balance = await productService.getUserBalance();
+      setPurchasedLessonsQty(balance.purchasedLessons);
+      setPurchasedExamsQty(balance.purchasedExams);
+      console.log("User balance:", balance);
     } catch (error) {
-      console.log("Error fetching purchased lessons:", error);
+      console.log("Error fetching user balance:", error);
     }
   };
 

@@ -1,80 +1,64 @@
-import React, { useState } from "react";
-import { View, Text, FlatList, TouchableOpacity, ScrollView } from "react-native";
+import React, { useState, useEffect } from "react";
+import { View, Text, FlatList, TouchableOpacity, ScrollView, ActivityIndicator } from "react-native";
 import { Ionicons } from "@expo/vector-icons";
 import NavBar from "../components/NavBar";
 import { storeStyles } from "../styles/StoreStyles";
 import { styles as appStyles } from "../styles/AppStyles";
 import { useCart } from "../context/CartContext";
+import { productService } from "../services/api";
 
-const PRODUCTS = [
-  {
-    id: "basic-course",
-    title: "Basic course",
-    desc:
-      "15 driving sessions, 5 theory classes, medical exam, and both practical and theoretical exams included. Perfect to start!",
-    price: "3400 PLN",
-    pricePLN: 3400,
-    type: "lesson", // 15 lessons included
-    quantity: 15,
-  },
-  {
-    id: "single-lesson",
-    title: "Driving lesson",
-    desc: "Single practical driving session",
-    price: "200 PLN",
-    pricePLN: 200,
-    type: "lesson",
-    quantity: 1,
-  },
-  {
-    id: "package-10",
-    title: "10‑lesson package",
-    desc: "10 practical driving sessions",
-    price: "1900 PLN",
-    pricePLN: 1900,
-    type: "lesson",
-    quantity: 10,
-  },
-  {
-    id: "package-5",
-    title: "5‑lesson package",
-    desc: "5 practical driving sessions",
-    price: "950 PLN",
-    pricePLN: 950,
-    type: "lesson",
-    quantity: 5,
-  },
-  {
-    id: "internal-exam",
-    title: "Practical exam",
-    desc: "Internal practical exam",
-    price: "100 PLN",
-    pricePLN: 100,
-    type: "exam",
-    quantity: 1,
-  },
-];
+const StoreItem = ({ item, onAdd }) => {
+  const displayPrice = `${(item.priceMinor / 100).toFixed(0)} PLN`;
 
-const StoreItem = ({ item, onAdd }) => (
-  <View style={[storeStyles.item, item.highlighted && storeStyles.itemHighlighted]}>
-    <View style={storeStyles.itemLeft}>
-      <Text style={storeStyles.itemTitle}>{item.title}</Text>
-      {!!item.desc && <Text style={storeStyles.itemDesc}>{item.desc}</Text>}
+  return (
+    <View style={[storeStyles.item, item.highlighted && storeStyles.itemHighlighted]}>
+      <View style={storeStyles.itemLeft}>
+        <Text style={storeStyles.itemTitle}>{item.title}</Text>
+        <Text style={storeStyles.itemDesc}>{item.description}</Text>
+      </View>
+      <View style={storeStyles.itemRight}>
+        <Text style={storeStyles.itemPrice}>{displayPrice}</Text>
+        <TouchableOpacity onPress={() => onAdd(item)} style={storeStyles.cartButton} activeOpacity={0.5}>
+          <Ionicons name="cart" size={20} color="#fff" />
+        </TouchableOpacity>
+      </View>
     </View>
-    <View style={storeStyles.itemRight}>
-      <Text style={storeStyles.itemPrice}>{item.price}</Text>
-      <TouchableOpacity onPress={() => onAdd(item)} style={storeStyles.cartButton} activeOpacity={0.5}>
-        <Ionicons name="cart" size={20} color="#fff" />
-      </TouchableOpacity>
-    </View>
-  </View>
-);
+  );
+};
 
 const Store = ({ navigation, tokenRole }) => {
-  const { addItem, items, totalQty } = useCart();
+  const { addItem, totalQty } = useCart();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+
+  useEffect(() => {
+    loadProducts();
+  }, []);
+
+  const loadProducts = async () => {
+    try {
+      setLoading(true);
+      setError(null);
+      const data = await productService.getProducts();
+      setProducts(data);
+    } catch (err) {
+      console.error("Error loading products:", err);
+      setError("Failed to load products");
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAdd = (item) => {
-    console.log("Add to cart:", item.id);
-    addItem(item, 1);
+    console.log("Add to cart:", item.code);
+    const cartItem = {
+      id: item.code,
+      title: item.title,
+      priceMinor: item.priceMinor,
+      entitlements: item.entitlements,
+    };
+    addItem(cartItem, 1);
   };
 
   const handleOpenCart = () => {
@@ -90,17 +74,30 @@ const Store = ({ navigation, tokenRole }) => {
           <Text style={storeStyles.introText}>Here you can easily purchase selected products:</Text>
         </View>
 
-        <FlatList
-          data={PRODUCTS}
-          keyExtractor={(it) => it.id}
-          renderItem={({ item }) => <StoreItem item={item} onAdd={handleAdd} />}
-          scrollEnabled={false}
-          ItemSeparatorComponent={() => <View style={storeStyles.separator} />}
-          contentContainerStyle={storeStyles.listContent}
-        />
+        {loading ? (
+          <View style={storeStyles.loadingContainer}>
+            <ActivityIndicator size="large" color="#007AFF" />
+            <Text style={storeStyles.loadingText}>Loading products...</Text>
+          </View>
+        ) : error ? (
+          <View style={storeStyles.errorContainer}>
+            <Text style={storeStyles.errorText}>{error}</Text>
+            <TouchableOpacity onPress={loadProducts} style={storeStyles.retryButton}>
+              <Text style={storeStyles.retryButtonText}>Retry</Text>
+            </TouchableOpacity>
+          </View>
+        ) : (
+          <FlatList
+            data={products}
+            keyExtractor={(item) => item.code}
+            renderItem={({ item }) => <StoreItem item={item} onAdd={handleAdd} />}
+            scrollEnabled={false}
+            ItemSeparatorComponent={() => <View style={storeStyles.separator} />}
+            contentContainerStyle={storeStyles.listContent}
+          />
+        )}
       </ScrollView>
 
-      
       <TouchableOpacity style={storeStyles.floatingCart} onPress={handleOpenCart} activeOpacity={0.85}>
         <Ionicons name="cart" size={24} color="#fff" />
         {totalQty > 0 && (

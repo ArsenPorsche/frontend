@@ -3,7 +3,7 @@ import React, { createContext, useContext, useMemo, useState } from "react";
 const CartContext = createContext(null);
 
 export const CartProvider = ({ children }) => {
-  const [items, setItems] = useState([]); // [{ id, title, qty, pricePLN }]
+  const [items, setItems] = useState([]); // [{ id, title, qty, priceMinor, entitlements }]
 
   const addItem = (product, qty = 1) => {
     if (!product?.id) return;
@@ -19,9 +19,8 @@ export const CartProvider = ({ children }) => {
         {
           id: product.id,
           title: product.title,
-          pricePLN: product.pricePLN || 0,
-          type: product.type,
-          baseQuantity: product.quantity || 1,
+          priceMinor: product.priceMinor || 0,
+          entitlements: product.entitlements || [],
           qty: Math.max(1, qty),
         },
       ];
@@ -44,10 +43,15 @@ export const CartProvider = ({ children }) => {
     () => items.reduce((sum, it) => sum + (it.qty || 0), 0),
     [items]
   );
+
+
   const totalPrice = useMemo(
-    () => items.reduce((sum, it) => sum + (it.pricePLN || 0) * (it.qty || 0), 0),
+    () => items.reduce((sum, it) => sum + (it.priceMinor || 0) * (it.qty || 0), 0),
     [items]
   );
+
+
+  const totalPLN = useMemo(() => (totalPrice / 100).toFixed(0), [totalPrice]);
 
   const value = {
     items,
@@ -56,6 +60,7 @@ export const CartProvider = ({ children }) => {
     clearCart,
     totalQty,
     totalPrice,
+    totalPLN,
   };
 
   return <CartContext.Provider value={value}>{children}</CartContext.Provider>;

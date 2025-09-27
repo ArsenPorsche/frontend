@@ -42,9 +42,7 @@ const Schedule = ({ navigation, token, userId, userRole }) => {
   const loadInitialData = async () => {
     try {
       console.log("Loading lessons for instructorId:", userId);
-      const lessonsData = await lessonService.getInstructorsLessons(
-        userId
-      );
+      const lessonsData = await lessonService.getInstructorsLessons();
       setLessons(lessonsData);
     } catch (error) {
       Alert.alert("Error", "Failed to load data. Please try again.");
@@ -72,7 +70,7 @@ const Schedule = ({ navigation, token, userId, userRole }) => {
 
   const handleGenerateAction = async () => {
     try {
-      const lessonsDate = await lessonService.getLessonOffer(userId);
+      const lessonsDate = await lessonService.getLessonOffer();
       setDateOffer(lessonsDate);
       if (lessonsDate === null) {
         Alert.alert("Error", "You have not free hours.");

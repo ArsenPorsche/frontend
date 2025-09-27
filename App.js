@@ -174,27 +174,25 @@ export default function App() {
           ) : tokenRole === "student" ? (
             <>
               <Stack.Screen name="Home">
-                {(props) => <Home {...props} token={token} userId={userId} tokenRole={tokenRole} />}
+                {(props) => (
+                  <Home
+                    {...props}
+                    userId={userId}
+                    tokenRole={tokenRole}
+                  />
+                )}
               </Stack.Screen>
               <Stack.Screen name="Store">
                 {(props) => <Store {...props} tokenRole={tokenRole} />}
               </Stack.Screen>
               <Stack.Screen name="Checkout">
-                {(props) => (
-                  <Checkout
-                    {...props}
-                    token={token}
-                    userId={userId}
-                    tokenRole={tokenRole}
-                  />
-                )}
+                {(props) => <Checkout {...props} tokenRole={tokenRole} />}
               </Stack.Screen>
               <Stack.Screen name="BookLesson">
                 {(props) => (
                   <BookLesson
                     {...props}
                     token={token}
-                    userId={userId}
                     userRole={tokenRole}
                   />
                 )}

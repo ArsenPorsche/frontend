@@ -135,6 +135,87 @@ export const instructorService = {
   },
 };
 
+// Product service
+export const productService = {
+  async getProducts() {
+    try {
+      const response = await api.get("/products");
+      console.log("Products response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching products:", error.message);
+      throw error;
+    }
+  },
+
+  async getProductByCode(code) {
+    try {
+      const response = await api.get(`/products/${code}`);
+      console.log("Product response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching product:", error.message);
+      throw error;
+    }
+  },
+
+  async createOrder(items) {
+    try {
+      const orderItems = items.map((item) => ({
+        productCode: item.id || item.code,
+        quantity: item.qty || 1,
+      }));
+
+      console.log("Creating order with items:", orderItems);
+
+      const response = await api.post("/products/orders", {
+        items: orderItems,
+      });
+
+      console.log("Order response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error creating order:", error.message);
+      throw error;
+    }
+  },
+
+  async getUserOrders(page = 1, limit = 10) {
+    try {
+      const response = await api.get("/products/orders/my", {
+        params: { page, limit },
+      });
+      console.log("Orders response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching orders:", error.message);
+      throw error;
+    }
+  },
+
+  async getOrderById(orderId) {
+    try {
+      const response = await api.get(`/products/orders/${orderId}`);
+      console.log("Order response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching order:", error.message);
+      throw error;
+    }
+  },
+
+  async getUserBalance() {
+    try {
+      const response = await api.get("/products/balance");
+      console.log("Balance response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching balance:", error.message);
+      throw error;
+    }
+  },
+};
+
 // Lesson service
 export const lessonService = {
   async getLessons() {
@@ -148,11 +229,10 @@ export const lessonService = {
     }
   },
 
-  async bookLesson(lessonId, studentId) {
+  async bookLesson(lessonId) {
     try {
       const response = await api.post("/lessons/book", {
         lessonId,
-        studentId,
       });
       return response.data;
     } catch (error) {
@@ -161,11 +241,9 @@ export const lessonService = {
     }
   },
 
-  async getInstructorsLessons(instructorId) {
+  async getInstructorsLessons() {
     try {
-      const response = await api.get("/lessons/instructors", {
-        params: { instructorId },
-      });
+      const response = await api.get("/lessons/instructors");
       console.log("Lessons response:", response.data);
       return response.data;
     } catch (error) {
@@ -180,11 +258,9 @@ export const lessonService = {
     }
   },
 
-  async getLessonOffer(instructorId) {
+  async getLessonOffer() {
     try {
-      const response = await api.get("/lessons/offer", {
-        params: { instructorId },
-      });
+      const response = await api.get("/lessons/offer");
       console.log("Lessons response:", response.data);
       return response.data;
     } catch (error) {
@@ -208,41 +284,6 @@ export const lessonService = {
       return response.data;
     } catch (error) {
       console.log("Error changing lesson:", error.message);
-      throw error;
-    }
-  },
-
-  async purchaseItems(userId, items) {
-    try {
-      const purchaseItems = items.map((item) => {
-        const result = {
-          type: item.type || (item.id.includes("exam") ? "exam" : "lesson"),
-          quantity: (item.baseQuantity || 1) * (item.qty || 1),
-        };
-        return result;
-      });
-
-      const response = await api.post("/lessons/purchase", {
-        userId,
-        items: purchaseItems,
-      });
-
-      return response.data;
-    } catch (error) {
-      console.log("Error purchasing items:", error.message);
-      throw error;
-    }
-  },
-
-  async getPurchasedLessons(userId) {
-    try {
-      const response = await api.get("/lessons/purchased", {
-        params: { userId },
-      });
-      console.log("Lessons response:", response.data);
-      return response.data;
-    } catch (error) {
-      console.log("Error fetching lessons:", error.message);
       throw error;
     }
   },
