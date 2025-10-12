@@ -201,6 +201,15 @@ export default function App() {
                   />
                 )}
               </Stack.Screen>
+              <Stack.Screen name="Schedule">
+                {(props) => (
+                  <Schedule
+                    {...props}
+                    token={token}
+                    userRole={tokenRole}
+                  />
+                )}
+              </Stack.Screen>
               <Stack.Screen name="Profile">
                 {(props) => (
                   <Profile
@@ -221,7 +230,6 @@ export default function App() {
                   <Schedule
                     {...props}
                     token={token}
-                    userId={userId}
                     userRole={tokenRole}
                   />
                 )}

@@ -136,8 +136,9 @@ export const processScheduleData = (lessons, selectedDate) => {
             value: moment(lesson.date).format("YYYY-MM-DD HH:mm"),
             sortValue: moment(lesson.date).valueOf(),
             lessonId: lesson._id,
-            lessonType: lesson.type, // Add lesson type
+            lessonType: lesson.type,
             studentName: lesson.student ? `${lesson.student.firstName} ${lesson.student.lastName}` : null,
+            instructorName: lesson.instructor ? `${lesson.instructor.firstName} ${lesson.instructor.lastName}` : null,
           }))
           .sort((a, b) => a.sortValue - b.sortValue),
       })
@@ -157,7 +158,7 @@ export const createRenderData = (
   switch (userRole) {
     case "instructor":
       data = [
-        { type: "instructorsHeader", id: "instructorsHeader", lessonType },
+        { type: "scheduleHeader", id: "scheduleHeader", lessonType },
         { type: "calendar", id: "calendar" },
       ];
 
@@ -166,21 +167,34 @@ export const createRenderData = (
 
       break;
     case "student":
-      data = [
-        { type: "header", id: "header", lessonType },
-        { type: "instructor", id: "instructor" },
-        { type: "calendar", id: "calendar" },
-      ];
+      // For student schedule view - show their booked lessons
+      if (lessonType === "schedule") {
+        data = [
+          { type: "scheduleHeader", id: "scheduleHeader" },
+          { type: "calendar", id: "calendar" },
+        ];
 
-      if (selectedInstructor && selectedDate) {
-        data.push({ type: "times", id: "times" });
+        if (selectedDate)
+          data.push({ type: "instructorsTimes", id: "instructorsTimes" });
+      } else {
+        // Original booking flow for students
+        data = [
+          { type: "header", id: "header", lessonType },
+          { type: "instructor", id: "instructor" },
+          { type: "calendar", id: "calendar" },
+        ];
 
-        if (selectedTime) {
-          data.push({ type: "button", id: "button", lessonType });
+        if (selectedInstructor && selectedDate) {
+          data.push({ type: "times", id: "times" });
+
+          if (selectedTime) {
+            data.push({ type: "button", id: "button", lessonType });
+          }
+
+          data.push({ type: "info", id: "info" });
         }
-
-        data.push({ type: "info", id: "info" });
       }
+      break;
     default:
       break;
   }

@@ -261,6 +261,38 @@ export const lessonService = {
     }
   },
 
+  async getStudentLessons() {
+    try {
+      const response = await api.get("/lessons/student");
+      console.log("Student lessons response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log(
+        "Error fetching student lessons:",
+        error.message,
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
+  async cancelLesson(lessonId) {
+    try {
+      const response = await api.post("/lessons/cancel", { lessonId });
+      console.log("Cancel lesson response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log(
+        "Error canceling lesson:",
+        error.message,
+        error.response?.status,
+        error.response?.data
+      );
+      throw error;
+    }
+  },
+
   async getLessonOffer() {
     try {
       const response = await api.get("/lessons/offer");

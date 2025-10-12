@@ -40,7 +40,7 @@ export const renderItem = (item, props) => {
         </View>
       );
 
-    case "instructorsHeader":
+    case "scheduleHeader":
       return (
         <View style={styles.header}>
           <View style={{ width: 24 }} />

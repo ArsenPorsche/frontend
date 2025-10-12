@@ -18,7 +18,7 @@ import NavBar from "../components/NavBar";
 import { styles } from "../styles/AppStyles";
 import moment from "moment";
 
-const Schedule = ({ navigation, token, userId, userRole }) => {
+const Schedule = ({ navigation, token, userRole }) => {
   const [lessons, setLessons] = useState([]);
   const [selectedDate, setSelectedDate] = useState(null);
   const [selectedTime, setSelectedTime] = useState(null);
@@ -42,8 +42,13 @@ const Schedule = ({ navigation, token, userId, userRole }) => {
 
   const loadInitialData = async () => {
     try {
-      console.log("Loading lessons for instructorId:", userId);
-      const lessonsData = await lessonService.getInstructorsLessons();
+      console.log("Loading lessons for role:", userRole);
+      let lessonsData;
+      if (userRole === "instructor") {
+        lessonsData = await lessonService.getInstructorsLessons();
+      } else if (userRole === "student") {
+        lessonsData = await lessonService.getStudentLessons();
+      }
       setLessons(lessonsData);
     } catch (error) {
       Alert.alert("Error", "Failed to load data. Please try again.");
@@ -72,13 +77,40 @@ const Schedule = ({ navigation, token, userId, userRole }) => {
 
   const handleGenerateAction = async () => {
     try {
-      const lessonsDate = await lessonService.getLessonOffer();
-      setDateOffer(lessonsDate);
-      if (lessonsDate === null) {
-        Alert.alert("Error", "You have not free hours.");
+      if (userRole === "instructor") {
+        const lessonsDate = await lessonService.getLessonOffer();
+        setDateOffer(lessonsDate);
+        if (lessonsDate === null) {
+          Alert.alert("Error", "You have not free hours.");
+        }
+      } else if (userRole === "student") {
+        // For students, this will be cancel lesson
+        handleCancelLesson();
       }
     } catch (error) {
       Alert.alert("Error", "Failed to generate lesson offer.");
+    }
+  };
+
+  const handleCancelLesson = async () => {
+    try {
+      const response = await lessonService.cancelLesson(selectedLesson);
+      
+      // Remove cancelled lesson from state
+      setLessons((prevLessons) => 
+        prevLessons.filter((l) => l._id !== selectedLesson)
+      );
+      
+      const refundMessage = response.refunded 
+        ? `Lesson cancelled and refunded (cancelled ${response.hoursBefore}h before)`
+        : `Lesson cancelled (cancelled ${response.hoursBefore}h before - no refund)`;
+        
+      Alert.alert("Success", refundMessage);
+      setIsTimeMenuVisible(false);
+      setSelectedTime(null);
+      setSelectedTimeInfo(null);
+    } catch (error) {
+      Alert.alert("Error", error.response?.data?.message || "Failed to cancel lesson");
     }
   };
 
@@ -109,7 +141,7 @@ const Schedule = ({ navigation, token, userId, userRole }) => {
     setDateOffer(null);
   };
 
-  const renderData = createRenderData(null, selectedDate, null, userRole);
+  const renderData = createRenderData(null, selectedDate, null, userRole, "schedule");
 
   const itemRenderer = (item) =>
     renderItem(item, {
@@ -149,9 +181,14 @@ const Schedule = ({ navigation, token, userId, userRole }) => {
                   <Text style={styles.modalText}>
                     Type: {selectedTimeInfo.lessonType === "exam" ? "Exam" : "Lesson"}
                   </Text>
-                  {selectedTimeInfo.studentName && (
+                  {userRole === "instructor" && selectedTimeInfo.studentName && (
                     <Text style={styles.modalText}>
                       Student: {selectedTimeInfo.studentName}
+                    </Text>
+                  )}
+                  {userRole === "student" && selectedTimeInfo.instructorName && (
+                    <Text style={styles.modalText}>
+                      Instructor: {selectedTimeInfo.instructorName}
                     </Text>
                   )}
                 </>
