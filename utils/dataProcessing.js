@@ -6,7 +6,7 @@ export const processBookingData = (
   selectedInstructor,
   selectedDate
 ) => {
-  // Update marked dates
+  
   const marked = {};
 
   const availableDates = lessons
@@ -79,7 +79,6 @@ export const processBookingData = (
 };
 
 export const processScheduleData = (lessons, selectedDate) => {
-  // Update marked dates
   const marked = {};
 
   const availableDates = lessons.map((lesson) =>
@@ -167,7 +166,6 @@ export const createRenderData = (
 
       break;
     case "student":
-      // For student schedule view - show their booked lessons
       if (lessonType === "schedule") {
         data = [
           { type: "scheduleHeader", id: "scheduleHeader" },
@@ -177,7 +175,6 @@ export const createRenderData = (
         if (selectedDate)
           data.push({ type: "instructorsTimes", id: "instructorsTimes" });
       } else {
-        // Original booking flow for students
         data = [
           { type: "header", id: "header", lessonType },
           { type: "instructor", id: "instructor" },

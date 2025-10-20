@@ -6,7 +6,6 @@ import NavBar from "../components/NavBar";
 import { useCart } from "../context/CartContext";
 import { productService } from "../services/api";
 
-// Uses shared cart context so changes reflect in Store
 const Checkout = ({ navigation, tokenRole }) => {
   const { items, updateQty, totalPrice, clearCart } = useCart();
 

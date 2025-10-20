@@ -8,13 +8,13 @@ const Profile = ({ navigation, tokenRole, handleLogout }) => (
     <View style={profileStyles.header}>
       <Text style={profileStyles.headerText}>My profile</Text>
     </View>
-    {/* <TouchableOpacity
+    <TouchableOpacity
       style={profileStyles.menuItem}
       onPress={() => navigation.navigate("EditProfile")}
     >
       <Text style={profileStyles.menuText}>Edit profile</Text>
     </TouchableOpacity>
-    <TouchableOpacity
+    {/* <TouchableOpacity
       style={profileStyles.menuItem}
       onPress={() => navigation.navigate("RideHistory")}
     >

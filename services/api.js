@@ -216,6 +216,30 @@ export const productService = {
   },
 };
 
+export const userService = {
+  async getProfile() {
+    try {
+      const response = await api.get("/auth/profile");
+      console.log("Profile response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching profile:", error.message);
+      throw error;
+    }
+  },
+
+  async updateProfile(updates) {
+    try {
+      const response = await api.put("/auth/profile", updates);
+      console.log("Update profile response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error updating profile:", error.message);
+      throw error;
+    }
+  },
+};
+
 // Lesson service
 export const lessonService = {
   async getLessons(params = {}) {

@@ -12,6 +12,7 @@ import BookLesson from "./screens/BookLesson";
 import Profile from "./screens/Profile";
 import Store from "./screens/Store";
 import Checkout from "./screens/Checkout";
+import EditProfile from "./screens/EditProfile";
 import { authService } from "./services/api";
 import { CartProvider } from "./context/CartContext";
 
@@ -219,6 +220,14 @@ export default function App() {
                   />
                 )}
               </Stack.Screen>
+              <Stack.Screen name="EditProfile">
+                {(props) => (
+                  <EditProfile
+                    {...props}
+                    tokenRole={tokenRole}
+                  />
+                )}
+              </Stack.Screen>
             </>
           ) : tokenRole === "instructor" ? (
             <>
@@ -240,6 +249,14 @@ export default function App() {
                     {...props}
                     tokenRole={tokenRole}
                     handleLogout={handleLogout}
+                  />
+                )}
+              </Stack.Screen>
+              <Stack.Screen name="EditProfile">
+                {(props) => (
+                  <EditProfile
+                    {...props}
+                    tokenRole={tokenRole}
                   />
                 )}
               </Stack.Screen>

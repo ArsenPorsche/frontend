@@ -15,7 +15,7 @@ export const styles = StyleSheet.create({
     borderBottomWidth: 1,
     borderColor: "#e1e8ed",
     marginHorizontal: -20,
-    marginTop: -20,
+    marginTop: -30,
     marginBottom: 20,
   },
   backBtn: {
@@ -27,7 +27,7 @@ export const styles = StyleSheet.create({
   headerText: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#2d4150",
+    color: "#1f2937",
   },
   flatListContent: {
     padding: 20,

@@ -84,7 +84,6 @@ const Schedule = ({ navigation, token, userRole }) => {
           Alert.alert("Error", "You have not free hours.");
         }
       } else if (userRole === "student") {
-        // For students, this will be cancel lesson
         handleCancelLesson();
       }
     } catch (error) {
@@ -96,7 +95,6 @@ const Schedule = ({ navigation, token, userRole }) => {
     try {
       const response = await lessonService.cancelLesson(selectedLesson);
       
-      // Remove cancelled lesson from state
       setLessons((prevLessons) => 
         prevLessons.filter((l) => l._id !== selectedLesson)
       );

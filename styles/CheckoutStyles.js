@@ -15,6 +15,7 @@ export const checkoutStyles = StyleSheet.create({
     justifyContent: "space-between",
     borderBottomWidth: 1,
     borderColor: "#e1e8ed",
+    marginTop: -10,
   },
   backBtn: {
     width: 24,
@@ -25,7 +26,8 @@ export const checkoutStyles = StyleSheet.create({
   headerText: {
     fontSize: 20,
     fontWeight: "700",
-    color: "#2d4150",
+    color: "#1f2937",
+    
   },
   paymentRow: {
     backgroundColor: "#fff",

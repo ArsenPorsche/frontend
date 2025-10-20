@@ -26,7 +26,7 @@ export default {
       favicon: "./assets/favicon.png",
     },
     extra: {
-      BASE_URL: "http://192.168.0.101:3000",
+      BASE_URL: "http://192.168.0.165:3000",
     },
   },
 };
