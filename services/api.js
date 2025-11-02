@@ -238,6 +238,18 @@ export const userService = {
       throw error;
     }
   },
+
+  async registerPushToken(token) {
+    try {
+      console.log("[registerPushToken] Sending token:", token);
+      const response = await api.post("/auth/push-token", { token });
+      console.log("[registerPushToken] Response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error registering push token:", error.message, error.response?.data);
+      throw error;
+    }
+  },
 };
 
 // Lesson service
@@ -343,6 +355,82 @@ export const lessonService = {
       return response.data;
     } catch (error) {
       console.log("Error changing lesson:", error.message);
+      throw error;
+    }
+  },
+};
+
+// Notification service
+export const notificationService = {
+  async getNotifications(params = {}) {
+    try {
+      const response = await api.get("/notifications", { params });
+      console.log("Notifications response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching notifications:", error.message);
+      throw error;
+    }
+  },
+
+  async getInstructorChats() {
+    try {
+      const response = await api.get("/notifications/instructors");
+      console.log("Instructor chats response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching instructor chats:", error.message);
+      throw error;
+    }
+  },
+
+  async getInstructorNotifications(instructorId, params = {}) {
+    try {
+      const response = await api.get(`/notifications/instructors/${instructorId}`, { params });
+      console.log("Instructor notifications response:", response.data);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching instructor notifications:", error.message);
+      throw error;
+    }
+  },
+
+  async markAsRead(notificationId) {
+    try {
+      const response = await api.patch(`/notifications/${notificationId}/read`);
+      return response.data;
+    } catch (error) {
+      console.log("Error marking notification as read:", error.message);
+      throw error;
+    }
+  },
+
+  async markAllAsRead() {
+    try {
+      const response = await api.patch("/notifications/read-all");
+      return response.data;
+    } catch (error) {
+      console.log("Error marking all notifications as read:", error.message);
+      throw error;
+    }
+  },
+
+  async markInstructorAsRead(instructorId) {
+    try {
+      const response = await api.patch(`/notifications/instructors/${instructorId}/read-all`);
+      return response.data;
+    } catch (error) {
+      console.log("Error marking instructor notifications as read:", error.message);
+      throw error;
+    }
+  },
+
+  async deleteNotification(notificationId) {
+    try {
+      const response = await api.delete(`/notifications/${notificationId}`);
+      return response.data;
+    } catch (error) {
+      console.log("Error deleting notification:", error.message);
       throw error;
     }
   },

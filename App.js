@@ -3,6 +3,8 @@ import { View, Text, ActivityIndicator } from "react-native";
 import { NavigationContainer } from "@react-navigation/native";
 import { createStackNavigator } from "@react-navigation/stack";
 import * as SecureStore from "expo-secure-store";
+import * as Notifications from "expo-notifications";
+import * as Device from "expo-device";
 import Login from "./screens/Login";
 import Register from "./screens/Register";
 import Schedule from "./screens/Schedule";
@@ -13,10 +15,51 @@ import Profile from "./screens/Profile";
 import Store from "./screens/Store";
 import Checkout from "./screens/Checkout";
 import EditProfile from "./screens/EditProfile";
-import { authService } from "./services/api";
+import Chat from "./screens/Chat";
+import InstructorChats from "./screens/InstructorChats";
+import InstructorChat from "./screens/InstructorChat";
+import { authService, userService } from "./services/api";
 import { CartProvider } from "./context/CartContext";
 
 const Stack = createStackNavigator();
+
+Notifications.setNotificationHandler({
+  handleNotification: async () => ({
+    shouldShowAlert: true,
+    shouldPlaySound: false,
+    shouldSetBadge: false,
+  }),
+});
+
+async function getExpoPushToken() {
+  try {
+    console.log("[getExpoPushToken] called");
+    if (!Device.isDevice) {
+      console.log("[getExpoPushToken] Not a physical device");
+      return null;
+    }
+    const { status: existingStatus } = await Notifications.getPermissionsAsync();
+    console.log("[getExpoPushToken] Existing status:", existingStatus);
+    let finalStatus = existingStatus;
+    if (existingStatus !== "granted") {
+      const { status } = await Notifications.requestPermissionsAsync();
+      finalStatus = status;
+      console.log("[getExpoPushToken] Requested status:", status);
+    }
+    if (finalStatus !== "granted") {
+      console.log("[getExpoPushToken] Permission not granted");
+      return null;
+    }
+    const tokenData = await Notifications.getExpoPushTokenAsync({
+      projectId: "1fdd220b-4a71-47a8-a6e9-c665a56d6b2d"
+    });
+    console.log("[getExpoPushToken] Got tokenData:", tokenData);
+    return tokenData?.data || null;
+  } catch (e) {
+    console.log("[getExpoPushToken] Error:", e.message);
+    return null;
+  }
+}
 
 export default function App() {
   const [user, setUser] = useState(null);
@@ -104,6 +147,22 @@ export default function App() {
     checkAndRefreshToken();
   }, []);
 
+  useEffect(() => {
+    (async () => {
+      console.log("[useEffect][pushToken] token:", token);
+      if (!token) return;
+      const expoToken = await getExpoPushToken();
+      console.log("[useEffect][pushToken] expoToken:", expoToken);
+      if (expoToken) {
+        try {
+          await userService.registerPushToken(expoToken);
+        } catch (e) {
+          console.log("[useEffect][pushToken] registerPushToken error:", e.message);
+        }
+      }
+    })();
+  }, [token]);
+
   const handleLogin = async ({ token, user, refreshToken }) => {
     try {
       await SecureStore.setItemAsync("token", token);
@@ -119,6 +178,16 @@ export default function App() {
       setUserId(validation.id);
 
       console.log("Login successful. Role:", validation.role);
+
+      try {
+        const expoToken = await getExpoPushToken();
+        console.log("[handleLogin] expoToken:", expoToken);
+        if (expoToken) {
+          await userService.registerPushToken(expoToken);
+        }
+      } catch (e) {
+        console.log("[handleLogin] registerPushToken error:", e.message);
+      }
     } catch (error) {
       console.log("Error saving to SecureStore:", error.message);
     }
@@ -228,6 +297,30 @@ export default function App() {
                   />
                 )}
               </Stack.Screen>
+              <Stack.Screen name="Chat">
+                {(props) => (
+                  <Chat
+                    {...props}
+                    tokenRole={tokenRole}
+                  />
+                )}
+              </Stack.Screen>
+              <Stack.Screen name="InstructorChats">
+                {(props) => (
+                  <InstructorChats
+                    {...props}
+                    tokenRole={tokenRole}
+                  />
+                )}
+              </Stack.Screen>
+              <Stack.Screen name="InstructorChat">
+                {(props) => (
+                  <InstructorChat
+                    {...props}
+                    tokenRole={tokenRole}
+                  />
+                )}
+              </Stack.Screen>
             </>
           ) : tokenRole === "instructor" ? (
             <>
@@ -255,6 +348,14 @@ export default function App() {
               <Stack.Screen name="EditProfile">
                 {(props) => (
                   <EditProfile
+                    {...props}
+                    tokenRole={tokenRole}
+                  />
+                )}
+              </Stack.Screen>
+              <Stack.Screen name="Chat">
+                {(props) => (
+                  <Chat
                     {...props}
                     tokenRole={tokenRole}
                   />

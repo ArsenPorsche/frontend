@@ -25,8 +25,9 @@ export default {
     web: {
       favicon: "./assets/favicon.png",
     },
+    projectId: "d9c50634-741c-4ad4-8878-2aef215474d3",
     extra: {
-      BASE_URL: "http://192.168.0.165:3000",
+      BASE_URL: "http://192.168.0.52:3000",
     },
   },
 };
