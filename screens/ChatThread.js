@@ -99,7 +99,9 @@ export default function ChatThread({ route, navigation, tokenRole }) {
           const onNewMessage = async (payload) => {
             if (!isMounted) return;
             const id = payload?._id ? String(payload._id) : null;
-            if (id && messageIdsRef.current.has(id)) return; // dedupe
+            if (id && messageIdsRef.current.has(id)) {
+              return;
+            }
             if (id) messageIdsRef.current.add(id);
             setMessages((prev) => [...prev, payload]);
             setTimeout(() => {
@@ -111,7 +113,9 @@ export default function ChatThread({ route, navigation, tokenRole }) {
             }
           };
           socket.on("message:new", onNewMessage);
-        } catch {}
+        } catch (e) {
+          console.log('Socket setup error:', e);
+        }
       };
 
       setup();
@@ -161,6 +165,26 @@ export default function ChatThread({ route, navigation, tokenRole }) {
     } else {
       const senderId = item.sender?._id || item.sender;
       sentByCurrentUser = senderId !== partnerId;
+    }
+
+    // System messages are centered and styled differently
+    if (isSystem) {
+      return (
+        <View style={{ paddingHorizontal: 20, paddingVertical: 12, alignItems: 'center' }}>
+          <View style={{ 
+            backgroundColor: '#f3f4f6', 
+            paddingVertical: 8, 
+            paddingHorizontal: 14, 
+            borderRadius: 12,
+            maxWidth: '90%',
+          }}>
+            <Text style={{ fontSize: 13, color: '#6b7280', textAlign: 'center', lineHeight: 18 }}>
+              {item.text || item.body}
+            </Text>
+            <Text style={[styles.notificationDate, { marginTop: 4, textAlign: 'center' }]}>{date}</Text>
+          </View>
+        </View>
+      );
     }
 
     return (

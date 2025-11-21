@@ -23,6 +23,7 @@ import LessonHistory from "./screens/LessonHistory";
 import InstructorHistory from "./screens/InstructorHistory";
 import { authService, userService } from "./services/api";
 import { CartProvider } from "./context/CartContext";
+import { getSocket, disconnectSocket } from "./services/socket";
 
 const Stack = createStackNavigator();
 
@@ -133,6 +134,7 @@ export default function App() {
         } catch (e) {
         }
       }
+      getSocket(token);
     })();
   }, [token]);
 
@@ -171,6 +173,8 @@ export default function App() {
     } catch (error) {
       console.log("Error clearing SecureStore:", error.message);
     }
+
+    disconnectSocket();
 
     setToken(null);
     setRefreshToken(null);
