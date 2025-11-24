@@ -554,3 +554,25 @@ export const chatService = {
     }
   },
 };
+
+export const testService = {
+  async getCategories() {
+    try {
+      const response = await api.get("/tests/categories");
+      return response.data;
+    } catch (error) {
+      throw error;
+    }
+  },
+
+  async getTest(topic) {
+    try {
+      const response = await api.get(`/tests/${topic}`);
+      return response.data;
+    } catch (error) {
+      console.log("Error fetching test:", error.message);
+      throw error;
+    }
+  },
+};
+

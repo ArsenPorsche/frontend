@@ -21,6 +21,9 @@ import UserManagement from "./screens/UserManagement";
 import ProductManagement from "./screens/ProductManagement";
 import LessonHistory from "./screens/LessonHistory";
 import InstructorHistory from "./screens/InstructorHistory";
+import TestCategories from "./screens/TestCategories";
+import TestQuiz from "./screens/TestQuiz";
+import TestResults from "./screens/TestResults";
 import { authService, userService } from "./services/api";
 import { CartProvider } from "./context/CartContext";
 import { getSocket, disconnectSocket } from "./services/socket";
@@ -304,6 +307,15 @@ export default function App() {
                     tokenRole={tokenRole}
                   />
                 )}
+              </Stack.Screen>
+              <Stack.Screen name="TestCategories">
+                {(props) => <TestCategories {...props} />}
+              </Stack.Screen>
+              <Stack.Screen name="TestQuiz">
+                {(props) => <TestQuiz {...props} />}
+              </Stack.Screen>
+              <Stack.Screen name="TestResults">
+                {(props) => <TestResults {...props} />}
               </Stack.Screen>
             </>
           ) : tokenRole === "instructor" ? (

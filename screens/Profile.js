@@ -22,6 +22,14 @@ const Profile = ({ navigation, tokenRole, handleLogout }) => (
         <Text style={profileStyles.menuText}>Lesson History</Text>
       </TouchableOpacity>
     )}
+    {tokenRole === "student" && (
+      <TouchableOpacity
+        style={profileStyles.menuItem}
+        onPress={() => navigation.navigate("TestCategories")}
+      >
+        <Text style={profileStyles.menuText}>Theory Tests</Text>
+      </TouchableOpacity>
+    )}
     {tokenRole === "instructor" && (
       <TouchableOpacity
         style={profileStyles.menuItem}
